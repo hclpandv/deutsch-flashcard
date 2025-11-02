@@ -80,10 +80,7 @@ footer { font-size: 0.85rem; color: #6c757d; margin-top: 20px; }
 <h2 class="mb-3 text-center">Deutsch Flashcards 🇩🇪</h2>
 
 <!-- Set Selector -->
-<select id="category" class="form-select mb-3" style="width: 350px;">
-  <option value="flashcards-verben-unregelmäßig.yaml">Verben (Irregular)</option>
-  <option value="flashcards-adjektive.yaml">Adjektive</option>
-</select>
+<select id="category" class="form-select mb-3" style="width: 350px;"></select>
 
 <!-- Progress -->
 <div class="progress-container">
@@ -118,7 +115,7 @@ footer { font-size: 0.85rem; color: #6c757d; margin-top: 20px; }
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script>
-const baseURL = 'https://raw.githubusercontent.com/hclpandv/deutsch-flashcard-data/main/'; // ✅ your new data repo
+const baseURL = 'https://raw.githubusercontent.com/hclpandv/deutsch-flashcard-data/main/'; // your data repo (there is one more down to modify)
 const selector = document.getElementById('category');
 const card = document.getElementById('flashcard');
 const cardFront = card.querySelector('.card-front');
@@ -135,6 +132,31 @@ let flashcards = [];
 let currentIndex = 0;
 let showingAnswer = false;
 let progress = {};
+
+// Populate dropdown
+async function populateDropdown() {
+  const response = await fetch('https://api.github.com/repos/hclpandv/deutsch-flashcard-data/contents/'); // your data repo
+  const files = await response.json();
+
+  const yamlFiles = files.filter(f => f.name.endsWith('.yaml'));
+  selector.innerHTML = ''; // clear
+
+  yamlFiles.forEach(file => {
+    const option = document.createElement('option');
+    option.value = file.name;
+    option.textContent = file.name.replace('flashcards-', '').replace('.yaml', '');
+    selector.appendChild(option);
+  });
+
+  const lastSet = localStorage.getItem('lastSet') || yamlFiles[0]?.name;
+  if (lastSet) {
+    selector.value = lastSet;
+    loadFlashcards(lastSet);
+  }
+}
+
+populateDropdown();
+
 
 // Load flashcards
 async function loadFlashcards(fileName) {

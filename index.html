@@ -256,10 +256,6 @@ selector.addEventListener('change', () => {
   localStorage.setItem('lastSet', selectedFile);
 });
 
-// Load last used set
-const lastSet = localStorage.getItem('lastSet') || 'flashcards-verben-unregelmäßig.yaml';
-selector.value = lastSet;
-loadFlashcards(lastSet);
 </script>
 </body>
 </html>

@@ -104,12 +104,15 @@ footer { font-size: 0.85rem; color: #6c757d; margin-top: 20px; }
   <button class="btn btn-secondary" id="shuffleBtn">Shuffle</button>
 </div>
 
-<!-- Known/Unknown -->
+<!-- Known/Unknown/Speak -->
 <div class="d-flex gap-2 mb-3">
   <button class="btn btn-success" id="knownBtn">Mark Known ✅</button>
   <button class="btn btn-danger" id="unknownBtn">Mark Unknown ❌</button>
   <button class="btn btn-info" id="speakBtn"><i class="bi bi-volume-up-fill"></i> Speak</button>
 </div>
+
+<!-- info on speech voice -->
+<p id="voiceInfo" class="text-muted small mt-2"></p>
 
 
 <!-- JS -->
@@ -132,6 +135,9 @@ let flashcards = [];
 let currentIndex = 0;
 let showingAnswer = false;
 let progress = {};
+
+// loading voices 
+speechSynthesis.onvoiceschanged = () => { speechSynthesis.getVoices(); };
 
 // Populate dropdown
 async function populateDropdown() {
@@ -244,8 +250,20 @@ unknownBtn.addEventListener('click', () => {
 
 speakBtn.addEventListener('click', () => {
   if (!flashcards.length) return;
-  const utterance = new SpeechSynthesisUtterance(flashcards[currentIndex].answer.replace(/<br>/g, ' '));
-  utterance.lang = 'de-DE'; // ✅ German voice
+
+  const utterance = new SpeechSynthesisUtterance(flashcards[currentIndex].answer.replace(/<br>/g,' '));
+  utterance.lang = 'de-DE';
+
+  // Pick a German voiceif available
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang.startsWith('de')) || null;
+  if (voice) utterance.voice = voice;
+
+  utterance.onstart = () => {
+    const voiceName = utterance.voice ? `${utterance.voice.name} (${utterance.voice.lang})` : 'unknown';
+    voiceInfo.textContent = `🎤 Using: ${voiceName}`;
+  };
+
   speechSynthesis.speak(utterance);
 });
 
